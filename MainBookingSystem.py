@@ -1,7 +1,10 @@
-# Instruction to markers: Please ensure all the text files are saved under the same folder before running.
+# Instruction to markers:
+# Please ensure all the text files are saved under the same folder before running.
 # Please fully extract all the files from the zip file.
-# ** You are strongly advised to use PyCharm IDE to run this program for better experience. ** https://www.jetbrains.com/pycharm/
-# Please ONLY open the folder storing this program in the IDE, DO NOT open the folder as a sub-folder in another folder, or run-time errors might occur.
+# ** You are strongly advised to use VS Code to run this program for better experience.
+# ** https://code.visualstudio.com/
+# Please ONLY open the folder storing this program in the IDE,
+# DO NOT open the folder as a sub-folder in another folder, or run-time errors might occur.
 
 # Admin UserID: LoveWaiWai, PW: iWANT5**
 
@@ -13,17 +16,17 @@ import random
 from datetime import date, datetime, timedelta
 from random import randrange
 
-G9_12 = 30
+G9_12 = 30  # Default Table Number
 G5_8 = 20
 G1_4 = 10
 ubid_gen_list = string.ascii_letters + string.digits  # UBID stands for Unique Booking Identification Code
-
 
 R = '\033[91m'  # Error Message: Red
 G = '\033[92m'  # Success Message: Green
 Y = '\033[33m'  # Warning Message: Yellow
 C = '\033[36m'  # Menu options: Cyan
 E = '\033[0m'  # END
+B = '\033[1m'  # BOLD
 
 
 def gen_unique_ubid():  # Generate unique booking identification code
@@ -65,7 +68,7 @@ def start_screen():  # Program starts form here
         login_system()
 
 
-def check_files_exist():  # Check all the required files exist to prevent run-time error
+def check_files_exist():  # Check all the required files exist to prevent run-time errors
     files = {
         "Account.txt": os.path.isfile("Account.txt"),
         "BookingSy.txt": os.path.isfile("BookingSy.txt"),
@@ -110,7 +113,7 @@ def delete_old_bookings():  # Delete useless bookings to maximise the efficiency
                 booking_date = datetime.strptime(booking_date, "%Y-%m-%d").date()
             except ValueError:
                 continue
-            if booking_date >= date.today():  # Check the booking date, if less than today, delete
+            if booking_date >= date.today():  # Check the booking date, if less than today, skip it
                 delete_old_booking.append(
                     f"{ubid}, {userid}, {booking_date.strftime('%Y-%m-%d')}, {booking_num}, {booking_time}\n")
             else:
@@ -142,8 +145,8 @@ def update_waiting_list():  # Update waiting list
                                                                                                        booking_time):
             # To ensure booking is valid
             write_booking(ubid, userid, booking_date, booking_time, group_size)
-            write_push_msg(f"{userid}", f"Your booking on {booking_date} has been confirmed. Check details on Booking "
-                                        f"Menu Option 2.")
+            write_push_msg(f"{userid}", f"{G}Your booking on {booking_date} has been confirmed. "
+                                        f"Check details on Booking Menu Option 2.{E}")
         else:
             updated_waiting_list.append(wait_booking)
 
@@ -192,8 +195,8 @@ def check_availability(book_num, user_date, user_time):  # To ensure the booking
             break
 
     if max_tables == 0 or check_size == 0:
-        print(f"\n{R}Unexpected Error occurred, please restart the program.{E}")
-        print("If the problem persists, contact our IT support.")
+        print(f"\n{R}Unexpected Error occurred, please restart the program.")
+        print(f"If the problem persists, contact our IT support.{E}")
         input("Press enter to exit:")
         exit(1)
 
@@ -267,8 +270,9 @@ def create_account():  # Create a new acc and add it to "Account.txt"
         else:
             empty = False
         check_space = userid.find(" ")  # No space is allowed
-        if check_space != -1:
-            print(f"{Y}Warning! No space is allowed!\n{E}")
+        check_comma = userid.find(",")  # No "," is allowed
+        if check_space != -1 or check_comma != -1:
+            print(f"{Y}Warning! No space or comma (,) is allowed!\n{E}")
             input("Press enter to try again.")
             continue
         elif empty:
@@ -280,6 +284,8 @@ def create_account():  # Create a new acc and add it to "Account.txt"
             for i in range(count_line()):
                 line = f.readline().strip()
                 line = line.split(", ")
+                if len(line) != 3:
+                    continue
                 if userid == line[0]:
                     exist = True
                     break
@@ -294,8 +300,9 @@ def create_account():  # Create a new acc and add it to "Account.txt"
     while True:
         pw = input("Create a password for your account: ")
         check_pw_space = pw.find(" ")  # To prevent error since I use ", " to split in other sub-programs
-        if check_pw_space != -1:
-            print(f"{Y}Warning! No space is allowed!\n{E}")
+        check_pw_comma = pw.find(",")
+        if check_pw_space != -1 or check_pw_comma != -1:
+            print(f"{Y}Warning! No space or comma (,) is allowed!\n{E}")
             input("Press enter to try again.")
             continue
         check_pw = input("Please type your password again: ")
@@ -317,8 +324,8 @@ def create_account():  # Create a new acc and add it to "Account.txt"
             continue
     with open("Account.txt", "a") as f:
         f.write(f"{userid}, {pw}, {phone}\n")
-    print("\nAccount creation complete! you may now use your new UserID and password to login.")
-    input("Press enter to proceed.")
+    print(f"\n{G}Account creation complete! you may now use your new UserID and password to login.{E}")
+    input(f"Press enter to proceed.")
     return
 
 
@@ -341,7 +348,10 @@ def login_system():
 
         with open("Account.txt", "r") as f:
             for line in f:
-                stored_user, stored_pw, _ = line.strip().split(", ")
+                try:
+                    stored_user, stored_pw, _ = line.strip().split(", ")
+                except ValueError:
+                    continue
                 if userid == stored_user:
                     userid_matched = True
                     break
@@ -358,7 +368,10 @@ def login_system():
         login_success = False
         with open("Account.txt", "r") as f:
             for line in f:
-                stored_user, stored_pw, _ = line.strip().split(", ")
+                try:
+                    stored_user, stored_pw, _ = line.strip().split(", ")
+                except ValueError:
+                    continue
                 if userid == stored_user and pw == stored_pw:
                     login_success = True
                     break
@@ -407,22 +420,22 @@ def management_system():
                             new_G1_4 = int(new_G1_4)
                             break
                         except ValueError:
-                            print("Error! You should input integers!")
+                            print(f"{R}\nError! You should input integers!{E}")
                             input("Press enter to try again:")
                             print("")
                             continue
                     if new_G9_12 < G9_12 or new_G5_8 < G5_8 or new_G1_4 < G1_4:
-                        print("\nWarning! new number(s) is smaller than the original one!")
+                        print(f"\n{Y}Warning! new number(s) are smaller than the original one!")
                         print("Existing bookings will not be affected, "
-                              "if you want to delete them, choose option 7 in the menu.")
-                        really = input("Press '-4' to abort the change")
+                              f"if you want to delete them, choose option 7 in the menu.{E}")
+                        really = input("Press '-4' to abort the change:")
                         if really == '-4':
-                            input("Process aborted, press enter to continue")
+                            input("Process aborted, press enter to continue:")
                             continue
                     with open("Tables.txt", "w") as f:
                         f.write(f"{new_G9_12}, {new_G5_8}, {new_G1_4}")
                     read_table_num()
-                    input("New number saved. Press enter to return to menu.")
+                    input(f"{G}New number saved. Press enter to return to menu.{E}")
                     continue
             elif choice == '2':
                 with open("Account.txt", "r") as f:
@@ -442,7 +455,7 @@ def management_system():
                     backup = f.read()
                 with open("Backup_BookingSy.txt", "w") as f:
                     f.write(backup)
-                print("\nBackup completed, the backup files is stored in 'Backup_BookingSy.txt'.")
+                print(f"\n{G}Backup completed, the backup files is stored in 'Backup_BookingSy.txt'.{E}")
                 input("Press enter to continue.")
                 continue
             elif choice == '4':
@@ -450,12 +463,12 @@ def management_system():
                     with open("Backup_BookingSy.txt", "r") as f:
                         backup = f.read()
                 except FileNotFoundError:
-                    print("No back up file found, you should do a backup first.")
+                    print(f"{R}No back up file found, you should do a backup first.{E}")
                     input("Press enter to continue")
                     continue
                 with open("BookingSy.txt", "w") as f:
                     f.write(backup)
-                print("\nRecover completed.")
+                print(f"\n{G}Recover completed.{E}")
                 input("Press enter to continue:")
                 continue
             elif choice == '5':
@@ -538,9 +551,9 @@ def management_system():
                 with open("BookingSy.txt", "w") as f:
                     f.writelines(m_new_bookings)
                 if deleted:
-                    input("Deletion complete, press enter to return to menu")
+                    input(f"{G}Deletion complete, press enter to return to the menu{E}")
                 else:
-                    print("\nNo booking with inputted UBID found")
+                    print(f"\n{R}No booking with inputted UBID found{E}")
                     input("Press enter to proceed")
                 continue
             elif choice == '8':
@@ -555,18 +568,18 @@ def management_system():
                     m8_ubid, m8_uid, m8_date, m8_num, m8_time = m8_parts
                     if m8_ubid == search_for_ubid:
                         found = True
+                        print("\nBooking Details:")
+                        print(f"UBID: {m8_ubid}")
+                        print(f"UserID: {m8_uid}")
+                        print(f"Booking Date: {m8_date}")
+                        print(f"Group Num: {m8_num}")
+                        print(f"Booking Time: {m8_time}")
+                        input("Press enter to proceed")
                         break
                 if found:
-                    print("\nBooking Details:")
-                    print(f"UBID: {m8_ubid}")
-                    print(f"UserID: {m8_uid}")
-                    print(f"Booking Date: {m8_date}")
-                    print(f"Group Num: {m8_num}")
-                    print(f"Booking Time: {m8_time}")
-                    input("Press enter to proceed")
                     continue
                 else:
-                    print("\nNo booking with inputted UBID found")
+                    print(f"\n{R}No booking with inputted UBID found{E}")
                     input("Press enter to proceed")
                     continue
             elif choice == '9':
@@ -584,13 +597,13 @@ def management_system():
                             Found = True
                             break
                     if not Found:
-                        print("\nUserID not found, please try again.")
+                        print(f"\n{R}UserID not found, please try again.{E}")
                         continue
                     else:
                         break
                 send_content = input("Write message here: ")
                 write_push_msg(send_id, send_content)
-                input("Finished, press enter to return to menu.")
+                input(f"{G}Finished, press enter to return to menu.{E}")
 
 
 def booking_system(userid):
@@ -598,18 +611,18 @@ def booking_system(userid):
         delete_old_bookings()
         update_waiting_list()
         read_table_num()
-        print("\nWelcome to WaiWai's Restaurant Booking System!")
+        print(f"{C}\nWelcome to WaiWai's Restaurant Booking System!")
         print("Booking Menu:")
         print("1. Book a table")
         print("2. View Existing Booking")
         print("3. Modify a Reservation")
         print("4. Cancel a booking")
         print("5. Exit Booking System")
-        print("6. Account Settings")
+        print(f"6. Account Settings{E}")
         while True:
             choice = input("Please enter your choice: ")
             if choice not in ['1', '2', '3', '4', '5', '6']:
-                print("Invalid input! Please try again!\n")
+                print(f"{R}Invalid input! Please try again!\n{E}")
                 continue
             else:
                 break
@@ -646,14 +659,14 @@ def book_table(userid):  # User Menu Choice 1
             user_date = datetime.strptime(book_date, "%Y-%m-%d").date()
             if not (today < user_date <= max_date):
                 if user_date == date.today():
-                    print("Sorry! We do not accept same day reservation.")
+                    print(f"{Y}Sorry! We do not accept same day reservation.{E}")
                     print("")
                     continue
                 else:
-                    print(f"Invalid Input! The booking date must be between {next_day} and {cal_max_day()}\n")
+                    print(f"{R}Invalid Input! The booking date must be between {next_day} and {cal_max_day()}\n{E}")
                     continue
         except ValueError:
-            print("Invalid Input! The format should be (yyyy-mm-dd) and must be a valid date!")
+            print(f"{R}Invalid Input! The format should be (yyyy-mm-dd) and must be a valid date!{E}")
             print("")
             continue
         break
@@ -666,27 +679,27 @@ def book_table(userid):  # User Menu Choice 1
             open_time = datetime.strptime("07:00", "%H:%M").time()
             close_time = datetime.strptime("20:30", "%H:%M").time()
             if not (open_time <= user_time <= close_time):  # WaiWai's Restaurant open 07:00 and close at 21:00
-                print("\nError! Out of business time! We only accept reservation between 07:00 - 20:30!")
+                print(f"{R}\nError! Out of business time! We only accept reservation between 07:00 - 20:30!{E}")
                 continue
             if user_time.minute not in [0, 30]:
-                print("\nError! You can only book at 30-minute intervals (e.g., 12:00, 12:30, 13:00).")
+                print(f"{R}\nError! You can only book at 30-minute intervals (e.g., 12:00, 12:30, 13:00).{E}")
                 continue
         except ValueError:
-            print("Invalid Input! The format should be (HH:MM) and must be a valid time (in 24h format)!")
+            print(f"{R}Invalid Input! The format should be (HH:MM) and must be a valid time (in 24h format)!{E}")
             print("")
             continue
         break
 
     if user_date == "" or user_time == "":
-        print("\nUnexpected Error occurred, please restart the program and try again.")
-        print("If the problem persists, contact our IT support.")
+        print(f"\n{R}Unexpected Error occurred, please restart the program and try again.")
+        print(f"If the problem persists, contact our IT support.{E}")
         input("Press enter to exit:")
         exit(1)
 
     if check_duplicated_booking(userid, user_date, user_time):  # Check if user duplicated booking
         print(
-            f"\nSorry, you can't make a reservation on {user_date} at {book_time} since you already have a "
-            f"reservation at that time.")
+            f"\n{Y}Sorry, you can't make a reservation on {user_date} at {book_time} since you already have a "
+            f"reservation at that time.{E}")
         input("Press enter to return to menu.")
         return
     else:
@@ -697,21 +710,21 @@ def book_table(userid):  # User Menu Choice 1
         try:
             user_num = int(book_num)
         except ValueError:
-            print("Error! You have to input an integer!\n")
+            print(f"{R}Error! You have to input an integer!\n{E}")
             continue
 
         if user_num < 1 or user_num > 12:
-            print("Invalid group size. We only accept reservations for 1-12 people.\n")
+            print(f"{R}Invalid group size. We only accept reservations for 1-12 people.\n{E}")
             continue
 
         if not check_availability(user_num, user_date, user_time):
-            print(f"\nSorry, there are no available tables for {book_num} people on {user_date}.")
-            ask = input("Would you like to wait for available table? (Y/N)")
+            print(f"\n{Y}Sorry, there are no available tables for {book_num} people on {user_date}.{E}")
+            ask = input(f"Would you like to wait for available table? (Y/N)")
             if ask not in ['Y', 'N', 'y', 'n']:
-                input("Invalid choice, your booking has been canceled, press enter to return to menu:")
+                input(f"{R}Invalid choice, your booking has been canceled{E}\nPress enter to return to menu:")
                 return
             elif ask in ['N', 'n']:
-                print("Thank you for using our service, press enter to return to menu.")
+                print("Thank you for using our service, press enter to return to the menu.")
                 return
             elif ask in ['Y', 'y']:
                 write_waiting_list(gen_unique_ubid(), user_num, user_date, userid, user_time)
@@ -756,7 +769,7 @@ def correct_booking(ubid, userid, user_date, user_time, user_num):
         print("3. Group Size")
         dummy = input("Please type the number:")
         if dummy not in ['1', '2', '3']:
-            print("Error! Invalid input! Please try again!")
+            print(f"{R}Error! Invalid input! Please try again!{E}")
             continue
         else:
             break
@@ -767,14 +780,14 @@ def correct_booking(ubid, userid, user_date, user_time, user_num):
             try:
                 new_user_date = datetime.strptime(new_book_date, "%Y-%m-%d").date()
             except ValueError:
-                print("Error! Invalid format! Please input in the format (yyyy-mm-dd)!")
+                print(f"{R}Error! Invalid format! Please input in the format (yyyy-mm-dd)!{E}")
                 continue
             if not (today < new_user_date <= max_date):
                 if new_user_date == date.today():
-                    print("Sorry! We do not accept same day reservation.\n")
+                    print(f"{Y}Sorry! We do not accept same day reservation.\n{E}")
                     continue
                 else:
-                    print(f"Invalid Input! The booking date must be between {next_day} and {cal_max_day()}\n")
+                    print(f"{R}Invalid Input! The booking date must be between {next_day} and {cal_max_day()}\n{E}")
                     continue
             else:
                 break
@@ -788,13 +801,13 @@ def correct_booking(ubid, userid, user_date, user_time, user_num):
                 open_time = datetime.strptime("07:00", "%H:%M").time()
                 close_time = datetime.strptime("20:30", "%H:%M").time()
                 if not (open_time <= new_user_time <= close_time):  # WaiWai's Restaurant open 07:00 and close at 21:00
-                    print("\nError! Out of business time! We only accept reservation between 07:00 - 20:30!")
+                    print(f"\n{R}Error! Out of business time! We only accept reservation between 07:00 - 20:30!{E}")
                     continue
                 if new_user_time.minute not in [0, 30]:
-                    print("\nError! You can only book at 30-minute intervals (e.g., 12:00, 12:30, 13:00).")
+                    print(f"\n{R}Error! You can only book at 30-minute intervals (e.g., 12:00, 12:30, 13:00).{E}")
                     continue
             except ValueError:
-                print("Invalid Input! The format should be (HH:MM) and must be a valid time (in 24h format)!\n")
+                print(f"{R}Invalid Input! The format should be (HH:MM) and must be a valid time (in 24h format)!{E}\n")
                 continue
             break
 
@@ -805,10 +818,10 @@ def correct_booking(ubid, userid, user_date, user_time, user_num):
             try:
                 new_user_num = int(new_user_num)
             except ValueError:
-                print("\nError! You should enter a integer which is in the range 1-12!")
+                print(f"\n{R}Error! You should enter a integer which is in the range 1-12!{E}")
                 continue
             if new_user_num < 1 or new_user_num > 12:
-                print("The range of booking number is 1-12, please try again.")
+                print(f"{R}The range of booking number is 1-12, please try again.{E}")
                 continue
             break
 
@@ -839,13 +852,15 @@ def correct_booking(ubid, userid, user_date, user_time, user_num):
             f.writelines(corr_booking)
         write_booking(ubid, userid, new_user_date, new_user_time, new_user_num)
         print(
-            f"\nReservation for {new_user_num} people has successfully booked for {new_user_date} at {new_user_time}. "
-            f"It's under the name {userid}.")
+            f"\n{G}Reservation for {new_user_num} people has successfully"
+            f" booked for {new_user_date} at {new_user_time}."
+            f"It's under the name {userid}.{E}")
         input("Press Enter for menu: ")
         return
     else:
-        print("\nProcess aborted, it may because the booking on the requested date(time) was full.")
-        print("Or you already have a booking on the requested date(time)")
+        print(f"\n{Y}Process aborted, it may because the booking on the requested date(time) was full, \n")
+        print(f"or you already have a booking on the requested date(time).\n")
+        print(f"If the problem persists, contact our IT support.{E}")
         input("Press enter to return to menu")
         return
 
@@ -854,8 +869,8 @@ def write_waiting_list(ubid, book_num, user_date, import_userid, user_time):
     try:
         book_num = int(book_num)
     except ValueError:
-        print("\nUnexpected Error occurred, please restart the program and try again.")
-        print("If the problem persists, contact our IT support.")
+        print(f"\n{R}Unexpected Error occurred, please restart the program and try again.")
+        print(f"If the problem persists, contact our IT support.{E}")
         input("Press enter to continue")
         return
     with open("WaitingList.txt", "r") as f:
@@ -897,24 +912,17 @@ def write_waiting_list(ubid, book_num, user_date, import_userid, user_time):
         with open("WaitingList.txt", "a") as f:
             f.write(f"{ubid}, {import_userid}, {user_date.strftime('%Y-%m-%d')}, {book_num}, {user_time}\n")
         print(
-            f"\nReservation for {book_num} people has successfully written into waiting list for "
-            f"{user_date} at {user_time}. It's under the name {import_userid}.")
+            f"{G}\nReservation for {book_num} people has successfully written into waiting list for "
+            f"{user_date} at {user_time}. It's under the name {import_userid}.{E}")
         return
     else:
-        print("Sorry, there are too much bookings at the requested date/time. Failed to add you to the waiting list, "
-              "please try another date for your booking.")
+        print(f"{Y}Sorry, there are too much bookings at the requested date/time. Failed to add you to the waiting "
+              f"list,"
+              f"please try another date for your booking.{E}")
         return
 
 
 def view_booking(userid):
-    print("")
-    for i in range(randrange(6)):
-        print("Please wait, searching in document...")
-        time.sleep(1)
-    for i in range(randrange(6)):
-        print("Proceeding...")
-        time.sleep(1)
-
     with open("BookingSy.txt", "r") as f:
         bookings = f.readlines()
 
@@ -965,7 +973,7 @@ def view_booking(userid):
         input("Press enter to return to menu:")
         return
     else:
-        print("\nNo reservations found under your name.")
+        print(f"\n{Y}No reservations found under your name.{E}")
         input("Press enter to return to menu:")
         return
 
@@ -1030,7 +1038,7 @@ def modify_booking(userid):
                                           f"Reservation for {modify_num} people at {modify_time_str}.")
 
         if match_modify == 0:
-            print("No bookings found at that day, please try again.")
+            print(f"{Y}No bookings found at that day, please try again.{E}")
             input("Please press enter to continue:")
             continue
         else:
@@ -1042,6 +1050,8 @@ def modify_booking(userid):
     correct = False
     while True:
         modify_time_str = input("Enter the time of the booking that you want to modify (HH:MM) ('-2' to exit): ")
+        if modify_time_str.strip() == '-2':
+            return
         try:
             k_modify_time = datetime.strptime(modify_time_str, "%H:%M").time()
             for booking in match_booking:
@@ -1059,9 +1069,9 @@ def modify_booking(userid):
             if correct:
                 break
             else:
-                print("Time inputted is invalid, please try again.")
+                print(f"{R}Time inputted is invalid, please try again.{E}")
         except ValueError:
-            print("Invalid time format! Please try again.\n")
+            print(f"{R}Invalid time format! Please try again.\n{E}")
             continue
 
     print("\nWhat would you like to modify?")
@@ -1089,16 +1099,17 @@ def modify_booking(userid):
             try:
                 new_date = datetime.strptime(new_date_str, "%Y-%m-%d").date()
             except ValueError:
-                print("Invalid date format! Please try again.\n")
+                print(f"{R}Invalid date format! Please try again.\n{E}")
+                continue
 
             if not (today < new_date <= max_date):
                 if new_date == date.today():
-                    print("Sorry! We do not accept same day reservation.\n")
+                    print(f"{Y}Sorry! We do not accept same day reservation.\n{E}")
                     continue
                 else:
                     print(
-                        f"Invalid Input! The date must be greater than {date.today()} and less than "
-                        f"{cal_max_day()}!\n")
+                        f"{R}Invalid Input! The date must be greater than {date.today()} and less than "
+                        f"{cal_max_day()}!\n{E}")
                     continue
             break
 
@@ -1111,13 +1122,14 @@ def modify_booking(userid):
             try:
                 new_time = datetime.strptime(new_time_str, "%H:%M").time()
             except ValueError:
-                print("Invalid time format! Please try again.\n")
+                print(f"{R}Invalid time format! Please try again.\n{E}")
+                continue
 
             if not (open_time <= new_time <= close_time):  # WaiWai's Restaurant open 07:00 and close at 21:00
-                print("\nError! Out of business time! We only accept reservation between 07:00 - 20:30!")
+                print(f"\n{R}Error! Out of business time! We only accept reservation between 07:00 - 20:30!{E}")
                 continue
             if new_time.minute not in [0, 30]:
-                print("\nError! You can only book at 30-minute intervals (e.g., 12:00, 12:30, 13:00).")
+                print(f"\n{R}Error! You can only book at 30-minute intervals (e.g., 12:00, 12:30, 13:00).{E}")
                 continue
             break
 
@@ -1128,7 +1140,7 @@ def modify_booking(userid):
             new_group_size = int(new_group_size)
             if 1 <= new_group_size <= 12:
                 break
-        print("Invalid group size. Please enter a number between 1 and 12.\n")
+        print(f"{R}Invalid group size. Please enter a number between 1 and 12.\n{E}")
 
     for k in bookings:
         parts = k.strip().split(", ")
@@ -1145,13 +1157,13 @@ def modify_booking(userid):
 
         if booking_id == userid and booking_date == modify_date and booking_time == k_modify_time:
             if check_duplicated_booking(userid, new_date, new_time):
-                print("\nYou already have a booking at the requested date and time, modification failed.")
+                print(f"\n{Y}You already have a booking at the requested date and time, modification failed.{E}")
                 input("Press enter to continue:")
                 return
             if not check_availability(new_group_size, new_date, new_time):
                 print(
-                    "\nSorry, the modification requested has failed, "
-                    "we don't have enough table at the requested date and time.")
+                    f"\n{Y}Sorry, the modification requested has failed, "
+                    f"we don't have enough table at the requested date and time.{E}")
                 input("Press enter to continue:")
                 return
             edited_bookings.append(
@@ -1164,7 +1176,7 @@ def modify_booking(userid):
     with open("BookingSy.txt", "w") as f:
         f.writelines(edited_bookings)
 
-    print("\nYour booking has been successfully modified.")
+    print(f"\n{G}Your booking has been successfully modified.{E}")
     input("Press Enter to continue.")
     return
 
@@ -1180,7 +1192,7 @@ def cancel_booking(userid):
                 cancel_date = datetime.strptime(cancel_date, "%Y-%m-%d").date()
                 break
             except ValueError:
-                print("Invalid date format! Please enter in yyyy-mm-dd.")
+                print(f"{R}Invalid date format! Please enter in yyyy-mm-dd.{E}")
                 continue
 
         with open("BookingSy.txt", "r") as f:
@@ -1230,7 +1242,7 @@ def cancel_booking(userid):
                                           f"Reservation for {cancel_num} people at {cancel_time_str}.")
 
         if match_cancel == 0:
-            print("No bookings found at that day, please try again.")
+            print(f"{Y}No bookings found at that day, please try again.{E}")
             input("Please press enter to continue:")
             continue
         else:
@@ -1248,7 +1260,7 @@ def cancel_booking(userid):
                     final_cancel_time = datetime.strptime(final_cancel_time_r, "%H:%M").time()
                     break
                 except ValueError:
-                    print("Invalid time! Please try again.")
+                    print(f"{R}Invalid time! Please try again.{E}")
                     continue
 
             final_c_ubid = None
@@ -1259,10 +1271,16 @@ def cancel_booking(userid):
                 if len(c1_parts) != 5:
                     continue
                 c1_ubid, c1_userid, c1_booking_date, c1_group_num, c1_booking_time = c1_parts
-                if cancel_date == c1_booking_date and c1_booking_time == final_cancel_time and c1_userid == userid:
+                try:
+                    c1_booking_date_ok = datetime.strptime(c1_booking_date, "%Y-%m-%d").date()
+                    c1_booking_time_ok = datetime.strptime(c1_booking_time, "%H:%M:%S").time()
+                except ValueError:
+                    continue
+                if (c1_booking_date_ok == cancel_date and c1_booking_time_ok == final_cancel_time
+                        and c1_userid == userid):
                     final_c_ubid = c1_ubid
             if final_c_ubid is None:
-                print("Error! No booking exist at the requested time! Cancellation aborted.")
+                print(f"{R}Error! No booking exist at the requested time! Cancellation aborted.{E}")
                 input("Press enter to return to menu")
                 return
 
@@ -1300,12 +1318,12 @@ def cancel_booking(userid):
             confirm = input(
                 f"Are you sure you want to cancel your booking on {cancel_date} at {final_cancel_time}? (Y/N): ")
             if confirm not in ['Y', 'y']:
-                print("Cancellation aborted.")
+                print(f"{Y}Cancellation aborted.{E}")
                 input("Press enter to continue")
                 return
             with open("BookingSy.txt", "w") as f:
                 f.writelines(edited_bookings)
-            print(f"\nBooking has been successfully canceled.")
+            print(f"\n{G}Booking has been successfully canceled.{E}")
             input("Press Enter to continue")
             return
 
@@ -1319,14 +1337,17 @@ def acc_settings(userid):
             return
         with open("Account.txt", "r") as f:
             for line in f:
-                stored_user, stored_pw, stored_phone = line.strip().split(", ")
+                try:
+                    stored_user, stored_pw, stored_phone = line.strip().split(", ")
+                except ValueError:
+                    continue
                 if stored_user == userid and stored_pw == pw:
                     user_pw = stored_pw
                     user_phone = stored_phone
                     login = True
                     break
         if not login:
-            print("Wrong password, please try again.")
+            print(f"{Y}Wrong password, please try again.{E}")
         else:
             break
 
@@ -1336,7 +1357,8 @@ def acc_settings(userid):
         star += "*"
     print(f"Password: {star}")
     print(f"Phone Number: {user_phone}")
-    next_step = input("If you want to change your password/phone number, enter '-3'. Press enter to return to menu.")
+    next_step = input("If you want to change your password/phone number, enter '-3'. "
+                      "Press enter to return to the menu.")
     if next_step == '-3':
         while True:
             print("")
@@ -1344,7 +1366,7 @@ def acc_settings(userid):
             print("2. Change phone number")
             choice = input("Enter your choice:")
             if choice not in ['1', '2']:
-                print("Error! You should enter '1' or '2'!")
+                print(f"{Y}Error! You should enter '1' or '2'!{E}")
                 continue
             else:
                 break
@@ -1353,12 +1375,18 @@ def acc_settings(userid):
         if choice == '1':
             while True:
                 new_pw = input("\nType a new password for your account: ")
+                check_new_pw_space = new_pw.find(" ")
+                check_new_pw_comma = new_pw.find(",")
+                if check_new_pw_space != -1 or check_new_pw_comma != -1:
+                    print(f"{Y}Warning! No space or comma (,) is allowed!\n{E}")
+                    input("Press enter to try again.")
+                    continue
                 if new_pw == user_pw:
-                    print("Error! It's same with the original password!\n")
+                    print(f"{Y}Error! It's same with the original password!\n{E}")
                     continue
                 check_pw = input("Please type your password again: ")
                 if check_pw != new_pw:
-                    print("Passwords do not match, please try again.")
+                    print(f"{Y}Passwords do not match, please try again.{E}")
                     print("")
                     continue
                 else:
@@ -1367,15 +1395,15 @@ def acc_settings(userid):
             while True:
                 new_phone = input("\nPlease input your new phone number: ")
                 if new_phone == user_phone:
-                    print("Error! It's same with the original phone number!\n")
+                    print(f"{Y}Error! It's same with the original phone number!\n{E}")
                     continue
                 if len(new_phone) != 8 or not new_phone.isdigit():
-                    print("Error! You have to input an 8-digit valid HK phone number!")
+                    print(f"{Y}Error! You have to input an 8-digit valid HK phone number!{E}")
                     continue
                 if new_phone[0] in ['4', '5', '6', '7', '8', '9']:
                     break
                 else:
-                    print("Error! Your phone number should start with [4, 5, 6, 7, 8, 9]!")
+                    print(f"{Y}Error! Your phone number should start with [4, 5, 6, 7, 8, 9]!{E}")
                     continue
 
         new_acc = []
@@ -1394,7 +1422,7 @@ def acc_settings(userid):
         with open("Account.txt", "w") as f:
             f.writelines(new_acc)
             f.write(f"{userid}, {new_pw}, {new_phone}\n")
-        print("\nAccount modification complete! Press enter to continue.")
+        print(f"\n{G}Account modification complete! Press enter to continue.{E}")
         return
 
     else:
@@ -1429,7 +1457,9 @@ def print_msg(userid):
 
 def write_push_msg(userid, content):
     with open("PushMsg.txt", "a") as f:
-        f.write(f"{userid}, {content}\n")
+        ensure = str(content).replace("\n", " ").replace(",", "，")
+        # Make sure the content will not make error
+        f.write(f"{userid}, {ensure}\n")
 
 
 start_screen()
