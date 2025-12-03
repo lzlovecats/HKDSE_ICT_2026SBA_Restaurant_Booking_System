@@ -93,11 +93,11 @@ def check_files_exist():  # Check all the required files exist to prevent run-ti
                         print(f"{R}災難性的失敗！{E}")
                         print(f"{R}Error information: {infor}{E}")
                         return False
-            return True
+            return True  # When missing files are created, allow user to continue their work
         else:
-            return False
+            return False  # If the user don't want to generate missing files, run-time error may occur, thus return False
     else:
-        return True
+        return True  # All files are there, good
 
 
 def delete_old_bookings():  # Delete useless bookings to maximise the efficiency
@@ -110,9 +110,9 @@ def delete_old_bookings():  # Delete useless bookings to maximise the efficiency
                 continue
             ubid, userid, booking_date, booking_num, booking_time = parts
             try:
-                booking_date = datetime.strptime(booking_date, "%Y-%m-%d").date()
+                booking_date = datetime.strptime(booking_date, "%Y-%m-%d").date()  # Only handle booking date
             except ValueError:
-                continue
+                continue  # If format error, means the booking will not be considerd valid, skip it
             if booking_date >= date.today():  # Check the booking date, if less than today, skip it
                 delete_old_booking.append(
                     f"{ubid}, {userid}, {booking_date.strftime('%Y-%m-%d')}, {booking_num}, {booking_time}\n")
@@ -170,7 +170,7 @@ def read_table_num():  # Update the table numbers, if error exist, use default s
                 G9_12 = int(G9_12)
                 G5_8 = int(G5_8)
                 G1_4 = int(G1_4)
-            except ValueError:
+            except ValueError:  # If the file content is invalid
                 G9_12 = 30
                 G5_8 = 20
                 G1_4 = 10
@@ -194,7 +194,7 @@ def check_availability(book_num, user_date, user_time):  # To ensure the booking
             max_tables = tables
             break
 
-    if max_tables == 0 or check_size == 0:
+    if max_tables == 0 or check_size == 0:  # If for some reasons, max_tables or check_size didn't change
         print(f"\n{R}Unexpected Error occurred, please restart the program.")
         print(f"If the problem persists, contact our IT support.{E}")
         input("Press enter to exit:")

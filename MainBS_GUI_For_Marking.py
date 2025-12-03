@@ -62,8 +62,8 @@ def delete_old_bookings():  # Delete useless bookings to maximise the efficiency
                 continue
             ubid, userid, booking_date, booking_num, booking_time = parts
             try:
-                booking_date = datetime.strptime(booking_date, "%Y-%m-%d").date()
-            except ValueError:
+                booking_date = datetime.strptime(booking_date, "%Y-%m-%d").date()  # Only handle booking date
+            except ValueError:  # If format error, means the booking will not be considerd valid, skip it
                 continue
             if booking_date >= date.today():  # Check the booking date, if less than today, skip it
                 delete_old_booking.append(
@@ -87,17 +87,18 @@ def check_environment():  # Check if the program can run successfully
         check_tk = tk.Tk()
         tk_patchlevel = check_tk.call("info", "patchlevel")  # Check if tk available
         check_tk.destroy()
-    except Exception as err:
+    except Exception as err:  # When tk.Tk can't be created, or can't get the info of tk.Tk
         try:
-            messagebox.showerror("Tk not available", f"Tkinter could not start.\nError Details: {err}")
-        except Exception:
-            sys.stderr.write(f"Tk not available: {err}\n")  # Make sure the error msg is printed in the Terminal
+            messagebox.showerror("Tk not available", f"Tkinter could not start.\nError Details: {err}")  # Try if graphical window can be shown
+        except Exception:  # If tk.Tk really can't run
+            sys.stderr.write(f"Tk not available: {err}\n")  # using sys to ensure the error msg is printed in the Terminal
         finally:
-            sys.exit(1)
+            sys.exit(1)  # Whatever GUI shown or not, use sys to exit the program, prevent the user destory
 
     try:
-        major, minor, *_ = [int(x) for x in tk_patchlevel.split(".")]
-        if (major, minor) < (8, 6):  # Recommended Tk Version >= 8.6
+        # Get the first two info of tk_patchlevel, for each data, int() it and write into major and minor
+        major, minor, *_ = [int(x) for x in tk_patchlevel.split(".")]  
+        if (major, minor) < (8, 6):  # Minimum requirement of Tk Version >= 8.6
             sure = messagebox.askyesno("Environment Incompatible",
                                        f"Detected Tk Version: {tk_patchlevel}. Required Tk 8.6 or above.\nYou may "
                                        f"still to continue, however unexpected errors may occurred.\nContinue?")
@@ -1006,6 +1007,7 @@ class ManagementPage(ttk.Frame):
         self.return_btn.grid_forget()
 
         op9_date = tk.StringVar()
+        return_btn = ttk.Button(self.form, text=" ← Return to Management Menu", command=self.return_menu)
         self.instruction_label = ttk.Label(self.form, text="Input a date to find bookings:", font=("Times New Roman", 22))
         self.date_label = ttk.Label(self.form, text="Date (yyyy-mm-dd)", font=("Arial", 16, "bold"))
         self.op9_date_entry = ttk.Entry(self.form, textvariable=op9_date)
@@ -1013,7 +1015,7 @@ class ManagementPage(ttk.Frame):
         self.instruction_label.grid(row=0, columnspan=2)
         self.date_label.grid(row=1, column=0)
         self.op9_date_entry.grid(row=1, column=1)
-        self.return_btn.grid(row=2, column=0)
+        return_btn.grid(row=2, column=0)
         self.find_btn.grid(row=2, column=1)
 
         self.op9_date_entry.bind("<Return>", self.op9_1)
