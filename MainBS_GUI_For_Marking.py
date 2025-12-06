@@ -91,7 +91,10 @@ def check_environment():  # Check if the program can run successfully
         try:
             messagebox.showerror("Tk not available", f"Tkinter could not start.\nError Details: {err}")  # Try if graphical window can be shown
         except Exception:  # If tk.Tk really can't run
-            sys.stderr.write(f"Tk not available: {err}\n")  # using sys to ensure the error msg is printed in the Terminal
+            sys.stderr.write(f"\nWARNING: This is a GUI version requires Tkinter and a grapgical desktop to run,\n",
+                             f"It cannot run in a remote environment,\n",
+                             f"If you have to run in a remote environment, use CLI version.\n\n"
+                             f"Technical Details: {err}\n")  # using sys to ensure the error msg is printed in the Terminal
         finally:
             sys.exit(1)  # Whatever GUI shown or not, use sys to exit the program, prevent the user destory
 
