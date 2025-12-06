@@ -2484,5 +2484,6 @@ if __name__ == "__main__":  # It should be run directly (just for safety)
         icon = tk.PhotoImage(file="icon.png")
         root.iconphoto(True, icon)
     except Exception:
+        messagebox.showerror("Icon not found", "The icon image is missing.\nYou may still continue your work without problems.\n\nPress OK to continue")
         pass
     root.mainloop()
