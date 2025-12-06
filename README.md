@@ -1,6 +1,12 @@
 Important reminders for markers, to run the program appropriately:
 
-1) Unzip everything to a folder (keep all .txt files in the same folder).
+1) Unzip everything to a folder, it should contain:
+    - icon.png
+    - MainBS_GUI_For_Marking.py
+    - MainBookingSystem.py
+
+    Remark: When you run the program for the first time, the program will ask you whether create all the required txt files, choose YES to continue.
+
 
 2) Ensure your Python version is >= 3.10 with Tk version >= 8.6
 
@@ -17,3 +23,5 @@ Important reminders for markers, to run the program appropriately:
    - If the problem still persists, please use the "MainBookingSystem.py" for marking (Some features are not supported in CLI mode)
 
 Thank you for your corporation! Enjoy the program!
+# Admin UserID: LoveWaiWai
+# Admin PW: iWANT5**
