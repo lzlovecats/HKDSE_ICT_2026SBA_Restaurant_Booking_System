@@ -1562,6 +1562,7 @@ class BookingPage_op3(ttk.Frame):
             try:
                 modify_user_date = datetime.strptime(modify_user_date, "%Y-%m-%d").date()
                 modify_time = datetime.strptime(modify_time, "%H:%M:%S").time()
+                modify_num = int(modify_num)
             except ValueError:
                 continue
 
@@ -1589,51 +1590,56 @@ class BookingPage_op3(ttk.Frame):
 
             if modify_userid == self.userid and modify_user_date == modify_date:
                 match_modify += 1
-                match_booking.append(f"{ubid}, {self.userid}, {modify_user_date}, {modify_num}, {modify_time}")
+                match_booking.append(f"{ubid}, {self.userid}, {modify_user_date}, {modify_num}, {modify_time.strftime('%H:%M')}")
                 match_booking_user.append(f"{modify_user_date.day} {month_final} {modify_user_date.year}: "
                                           f"Reservation for {modify_num} people at {modify_time_str}.")
 
         if match_modify == 0:
             messagebox.showerror("Invalid input.",
-                                 "No bookings found at that day/time, please try again.")
+                                 "No bookings found on that date, please try again.")
             return
 
         correct = False
+        self.tbm_ubid = None
         try:
             k_modify_time = datetime.strptime(self.book_time, "%H:%M").time()
+            k_size = int(book_size)
             for booking in match_booking:
                 parts1 = booking.strip().split(", ")
                 if len(parts1) != 5:
                     continue
-                ubid1, _, _, _, k_time_str = parts1
+                ubid1, _, _, k_num_str, k_time_str = parts1
                 try:
-                    k_time = datetime.strptime(k_time_str, "%H:%M:%S").time()
+                    k_time = datetime.strptime(k_time_str, "%H:%M").time()
+                    k_num = int(k_num_str)
                 except ValueError:
                     continue
-                if k_time == k_modify_time:
+                if k_time == k_modify_time and k_num == k_size:
                     correct = True
+                    self.tbm_ubid = ubid1
                     break
             if correct:
                 pass
             else:
                 messagebox.showerror("Invalid input.",
-                                     "No bookings found at that day/time, please try again.")
+                                     "No bookings found at that day/time/group size, please try again.")
                 return
         except ValueError:
-            messagebox.showerror("Invalid input.", "Invalid time format! Please try again.")
+            messagebox.showerror("Invalid input.", "Invalid time/number format! Please try again.")
             return
 
         if not book_size.isdigit() or not (1 <= int(book_size) <= 12):
             messagebox.showerror("Invalid input.", "Invalid group size format! Please try again.")
             return
 
-        self.tbm_date.set(book_date)
-        self.tbm_time.set(self.book_time)
-        self.tbm_size.set(book_size)
+        self.tbm_date.set(modify_date)
+        self.tbm_time.set(k_modify_time.strftime('%H:%M'))
+        self.tbm_size.set(k_size)
         self.modify_page = BookingPage_op3_1(self.master, controller=self.controller,
                                              tbm_date=self.tbm_date.get(),
                                              tbm_time=self.tbm_time.get(),
-                                             tbm_size=self.tbm_size.get())
+                                             tbm_size=self.tbm_size.get(),
+                                             tbm_ubid = self.tbm_ubid)
         self.pack_forget()
         self.modify_page.pack(fill="both", expand=True)
 
@@ -1645,7 +1651,7 @@ class BookingPage_op3(ttk.Frame):
 
 
 class BookingPage_op3_1(ttk.Frame):
-    def __init__(self, parent, controller=None, tbm_date="", tbm_time="", tbm_size=""):
+    def __init__(self, parent, controller=None, tbm_date="", tbm_time="", tbm_size="", tbm_ubid=""):
         super().__init__(parent)
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
@@ -1654,6 +1660,7 @@ class BookingPage_op3_1(ttk.Frame):
         self.tbm_date = tbm_date
         self.tbm_time = tbm_time
         self.tbm_size = tbm_size
+        self.tbm_ubid = tbm_ubid
         form = ttk.Frame(self)
         form.grid(row=0, column=0)
 
@@ -1695,13 +1702,16 @@ class BookingPage_op3_1(ttk.Frame):
         max_date_str = cal_max_day()
         max_date = datetime.strptime(max_date_str, "%Y-%m-%d").date()
         edited_bookings = []
-        old_date = self.new_date_entry.get()
-        old_time = self.new_time_entry.get()
-        old_size = self.new_size_entry.get()
+        new_date = self.new_date_entry.get().strip()
+        new_time = self.new_time_entry.get().strip()
+        new_size = self.new_size_entry.get().strip()
         try:
             old_date = datetime.strptime(self.tbm_date, "%Y-%m-%d").date()
             old_time = datetime.strptime(self.tbm_time, "%H:%M").time()
-            old_size = int(old_size)
+            old_size = int(self.tbm_size)
+            new_date = datetime.strptime(new_date, "%Y-%m-%d").date()
+            new_time = datetime.strptime(new_time, "%H:%M").time()
+            new_size = int(new_size)
         except ValueError:
             messagebox.showerror("Invalid input.", "The format of date/time/group size is not correct!\n"
                                                    "Please try again!")
@@ -1709,12 +1719,6 @@ class BookingPage_op3_1(ttk.Frame):
 
         with open("BookingSy.txt", "r") as f:
             bookings = f.readlines()
-
-        try:
-            new_date = datetime.strptime(self.new_date_entry.get(), "%Y-%m-%d").date()
-        except ValueError:
-            messagebox.showerror("Invalid input.", "Invalid date format! Please try again.")
-            return
 
         if not (today < new_date <= max_date):
             if new_date == date.today():
@@ -1728,11 +1732,6 @@ class BookingPage_op3_1(ttk.Frame):
 
         open_time = datetime.strptime("07:00", "%H:%M").time()
         close_time = datetime.strptime("20:30", "%H:%M").time()
-        try:
-            new_time = datetime.strptime(self.new_time_entry.get(), "%H:%M").time()
-        except ValueError:
-            messagebox.showerror("Invalid input.", "Invalid time format! Please try again.")
-            return
 
         if not (open_time <= new_time <= close_time):  # WaiWai's Restaurant open 07:00 and close at 21:00
             messagebox.showerror(
@@ -1743,57 +1742,81 @@ class BookingPage_op3_1(ttk.Frame):
                                  "Error! You can only book at 30-minute intervals (e.g., 12:00, 12:30, 13:00).")
             return
 
-        if self.new_size_entry.get().isdigit():
-            new_size = int(self.new_size_entry.get())
-            if 1 <= new_size <= 12:
+        if 1 <= new_size <= 12:
                 pass
-            else:
-                messagebox.showerror("Invalid input.", "Invalid group size. Please enter a number between 1 and 12.")
-                return
         else:
-            messagebox.showerror("Invalid input.", "Invalid group size. The format of group size should be an integer!")
+            messagebox.showerror("Invalid input.", "Invalid group size. Please enter a number between 1 and 12.")
             return
 
-        modified = False
+        old_ubid = None
         for k in bookings:
             parts = k.strip().split(", ")
             if len(parts) != 5:
                 continue
 
-            ubid2, booking_id, booking_date_str, _, booking_time_str = parts
+            ubid2, booking_id, booking_date_str, group_size, booking_time_str = parts
 
             try:
                 booking_date = datetime.strptime(booking_date_str, "%Y-%m-%d").date()
                 booking_time = datetime.strptime(booking_time_str, "%H:%M:%S").time()
+                group_size = int(group_size)
             except ValueError:
                 continue
 
-            if booking_id == self.userid and booking_date == old_date and booking_time == old_time:
-                if check_duplicated_booking(self.userid, new_date, new_time):
-                    messagebox.showerror("Duplicated booking.",
-                                         "You already have a booking at the requested date and time, modification "
-                                         "failed.")
-                    return
-                if not check_availability(new_size, new_date, new_time):
-                    messagebox.showerror("Not available", "We don't have enough tables at that time.")
-                    return
-                edited_bookings.append(
-                    f"{ubid2}, {self.userid}, {new_date.strftime('%Y-%m-%d')}, {new_size}, "
-                    f"{new_time.strftime('%H:%M:%S')}\n"
-                )
-                modified = True
+            if ubid2 == self.tbm_ubid:
+                old_ubid = ubid2
+                real_old_date = booking_date
+                real_old_time = booking_time
+                real_old_size = group_size
+                pass
             else:
                 edited_bookings.append(k)
 
-        with open("BookingSy.txt", "w") as f:
-            f.writelines(edited_bookings)
+        if old_ubid == None:
+                messagebox.showerror("Modification failed", "Unable to find the original booking to modify.\n" \
+                "Pls the the details of your orginal booking")
+                return
 
+        if old_date == new_date and old_time == new_time and old_size == new_size:
+            messagebox.showerror("Nothing changed", "You have edited nothing!")
+            return
+
+        with open("BookingSy.txt", "w") as f:
+            f.writelines(edited_bookings)  # Delete the booking that tbm
+
+        modified = True
+        check_dup = False
+        check_ava = False
+        if check_duplicated_booking(self.userid, new_date, new_time):
+                    messagebox.showerror("Duplicated booking.",
+                                         "You already have a booking at the requested date and time, modification "
+                                         "failed.")
+                    modified = False
+                    check_dup = True
+        elif not check_availability(new_size, new_date, new_time):
+            messagebox.showerror("Not available", "We don't have enough tables at that time.")
+            modified = False
+            check_ava = True
+        
+        
         if modified:
             messagebox.showinfo("Modification success.", "Your booking has been successfully modified.")
+            edited_bookings.append(
+                    f"{old_ubid}, {self.userid}, {new_date.strftime('%Y-%m-%d')}, {new_size}, "
+                    f"{new_time.strftime('%H:%M:%S')}\n"
+                )
+            with open("BookingSy.txt", "w") as f:
+                f.writelines(edited_bookings)  # Rewrite the file with new booking
+            update_waiting_list()
             self.return_booking()
         else:
-            messagebox.showerror("Modification failed", "Unable to find the original booking to modify.")
-            return
+            edited_bookings.append(
+            f"{old_ubid}, {self.userid}, {real_old_date.strftime('%Y-%m-%d')}, {real_old_size}, {real_old_time.strftime('%H:%M:%S')}\n"
+            )
+            with open("BookingSy.txt", "w") as f:
+                f.writelines(edited_bookings)  # Rewrite the file with OLD booking
+            update_waiting_list()
+            self.return_booking()
 
     def focus_1(self, event=None):
         self.new_time_entry.focus_set()
